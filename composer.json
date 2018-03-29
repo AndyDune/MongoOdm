@@ -1,0 +1,40 @@
+{
+    "name": "andydune/mongo-odm",
+    "description": "AObject Document mapper for mongoDB with no proxies, special configuration.",
+    "license": "MIT",
+    "keywords": [
+        "php",
+        "mongo",
+        "odm"
+    ],
+    "authors": [
+        {
+            "name": "Andrey Ryzhov",
+            "email": "info@rznw.ru"
+        }
+    ],
+    "homepage": "https://github.com/AndyDune/MongoOdm",
+    "autoload": {
+        "psr-4": {
+            "AndyDune\\MongoOdm\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=7.1",
+        "mongodb/mongodb": "^1.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.7.15 || ^6.0.8",
+        "mongodb/mongodb": "^1.1"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AndyDune\\MongoOdmTest\\": "test/"
+        }
+    }
+}
