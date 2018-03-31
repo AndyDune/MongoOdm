@@ -17,13 +17,9 @@
 namespace AndyDune\MongoOdm;
 
 
-abstract class DocumentAbstract
+abstract class TypeAbstract
 {
-    protected $fieldsMapString = [];
-    protected $fieldsMap = [];
+    abstract public function convertToPhpValue($value);
 
-    public function __construct()
-    {
-
-    }
+    abstract public function convertToDatabaseValue($value);
 }

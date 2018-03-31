@@ -14,16 +14,20 @@
  */
 
 
-namespace AndyDune\MongoOdm;
+namespace AndyDune\MongoOdm\Type;
 
+use AndyDune\MongoOdm\TypeAbstract;
 
-abstract class DocumentAbstract
+class Integer extends TypeAbstract
 {
-    protected $fieldsMapString = [];
-    protected $fieldsMap = [];
-
-    public function __construct()
+    public function convertToPhpValue($value)
     {
-
+        return $value;
     }
+
+    public function convertToDatabaseValue($value)
+    {
+        return (int)$value;
+    }
+
 }
