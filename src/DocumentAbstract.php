@@ -15,15 +15,35 @@
 
 
 namespace AndyDune\MongoOdm;
-
+use MongoDB\Collection;
 
 abstract class DocumentAbstract
 {
+    /**
+     * @var Collection
+     */
+    protected $collection;
+
+    protected $id;
     protected $fieldsMapString = [];
     protected $fieldsMap = [];
 
-    public function __construct()
+    final public function __construct(Collection $collection)
+    {
+        $this->collection = $collection;
+        $this->describe();
+    }
+
+    /**
+     * Overload this method to direct describe collection fields.
+     */
+    public function describe()
     {
 
+    }
+
+    public function getId()
+    {
+        return $this->id;
     }
 }

@@ -15,10 +15,9 @@
 
 
 namespace AndyDune\MongoOdm\Type;
-
 use AndyDune\MongoOdm\TypeAbstract;
 
-class Integer extends TypeAbstract
+class IntegerType extends TypeAbstract
 {
     public function convertToPhpValue($value)
     {
@@ -27,7 +26,7 @@ class Integer extends TypeAbstract
 
     public function convertToDatabaseValue($value)
     {
-        return (int)$value;
+        return (int)trim($value);
     }
 
 }
