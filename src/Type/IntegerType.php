@@ -24,7 +24,7 @@ class IntegerType extends TypeAbstract
         return $value;
     }
 
-    public function convertToDatabaseValue($value)
+    public function convertToDatabaseValue($value, $existValue = null)
     {
         return (int)trim($value);
     }

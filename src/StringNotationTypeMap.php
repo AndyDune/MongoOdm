@@ -16,6 +16,7 @@
 
 namespace AndyDune\MongoOdm;
 
+use AndyDune\MongoOdm\Type\ArrayType;
 use AndyDune\MongoOdm\Type\IntegerType;
 use AndyDune\MongoOdm\Type\StringType;
 
@@ -23,7 +24,9 @@ class StringNotationTypeMap
 {
     protected $types = [
         'string' => StringType::class,
-        'int' => IntegerType::class,
+        'integer' => IntegerType::class,
+        'string_array' => [ArrayType::class, StringType::class],
+        'integer_array' => [ArrayType::class, IntegerType::class],
     ];
 
     static protected $instance = null;

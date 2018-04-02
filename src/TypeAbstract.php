@@ -19,7 +19,22 @@ namespace AndyDune\MongoOdm;
 
 abstract class TypeAbstract
 {
+    /**
+     * @var null|TypeAbstract
+     */
+    protected $childType = null;
+
+    /**
+     * @param TypeAbstract $type
+     * @return TypeAbstract
+     */
+    public function setChildType(TypeAbstract $type)
+    {
+        $this->childType = $type;
+        return $this;
+    }
+
     abstract public function convertToPhpValue($value);
 
-    abstract public function convertToDatabaseValue($value);
+    abstract public function convertToDatabaseValue($value, $existValue = null);
 }

@@ -17,7 +17,8 @@
 namespace AndyDune\MongoOdm\Type;
 use AndyDune\MongoOdm\TypeAbstract;
 
-class StringType extends TypeAbstract
+
+class ArrayType extends TypeAbstract
 {
     public function convertToPhpValue($value)
     {
@@ -26,7 +27,20 @@ class StringType extends TypeAbstract
 
     public function convertToDatabaseValue($value, $existValue = null)
     {
-        return (string)trim($value);
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (!$existValue) {
+            $existValue = [];
+        }
+
+        if ($this->childType) {
+            $value = $this->childType->convertToDatabaseValue($value);
+        }
+
+        $existValue[] = $value;
+        return $existValue;
     }
 
 }

@@ -29,8 +29,7 @@ abstract class DocumentAbstract
     protected $id;
     protected $fieldsMap = [];
 
-    protected $dataDb = [];
-    protected $dataPhp = [];
+    protected $data = [];
 
     final public function __construct(Collection $collection, $strong = false)
     {
@@ -59,27 +58,33 @@ abstract class DocumentAbstract
     {
         $this->id = $data['_id'];
         unset($data['_id']);
-        $this->dataDb = $data;
+        $this->data = $data;
     }
 
     public function __set($name, $value)
     {
-        $this->dataPhp[$name] = $value;
+        if (array_key_exists($name, $this->fieldsMap)) {
+            $value = $this->fieldsMap[$name]->convertToDatabaseValue($value, $this->get($name));
+        }
+
+        $this->data[$name] = $value;
     }
 
     public function __get($name)
     {
-        if (array_key_exists($name, $this->dataPhp)) {
-            return $this->dataPhp[$name];
-        }
+        return $this->get($name);
+    }
 
-        if (array_key_exists($name, $this->dataDb)) {
-            $result = $this->dataDb[$name];
+    public function get($name)
+    {
+        if (array_key_exists($name, $this->data)) {
+            $result = $this->data[$name];
             if (array_key_exists($name, $this->fieldsMap)) {
                 return $this->fieldsMap[$name]->convertToPhpValue($result);
             }
             return $result;
         }
         return null;
+
     }
 }
