@@ -2,6 +2,8 @@
 /**
  * Object Document mapper for mongoDB with no proxies, special configuration.
  *
+ * You should use factory for create instance for this class.
+ *
  * PHP version >= 7.1
  *
  *
@@ -25,13 +27,19 @@ abstract class DocumentAbstract
     protected $collection;
 
     protected $id;
-    protected $fieldsMapString = [];
     protected $fieldsMap = [];
 
-    final public function __construct(Collection $collection)
+    protected $dataDb = [];
+    protected $dataPhp = [];
+
+    final public function __construct(Collection $collection, $strong = false)
     {
         $this->collection = $collection;
         $this->describe();
+        $map = StringNotationTypeMap::getInstance();
+        array_walk($this->fieldsMap, function (&$value, $key) use($map) {
+            $value = $map->getTypeObject($value);
+        });
     }
 
     /**
@@ -45,5 +53,33 @@ abstract class DocumentAbstract
     public function getId()
     {
         return $this->id;
+    }
+
+    public function populate($data)
+    {
+        $this->id = $data['_id'];
+        unset($data['_id']);
+        $this->dataDb = $data;
+    }
+
+    public function __set($name, $value)
+    {
+        $this->dataPhp[$name] = $value;
+    }
+
+    public function __get($name)
+    {
+        if (array_key_exists($name, $this->dataPhp)) {
+            return $this->dataPhp[$name];
+        }
+
+        if (array_key_exists($name, $this->dataDb)) {
+            $result = $this->dataDb[$name];
+            if (array_key_exists($name, $this->fieldsMap)) {
+                return $this->fieldsMap[$name]->convertToPhpValue($result);
+            }
+            return $result;
+        }
+        return null;
     }
 }
