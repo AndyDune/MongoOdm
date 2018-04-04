@@ -51,10 +51,32 @@ class StringNotationTypeMap
         }
 
         if (array_key_exists($string, $this->types)) {
-            if (is_string($this->types[$string])) {
-                return new $this->types[$string];
+            $typeDescription = $this->types[$string];
+            if (!is_array($typeDescription)) {
+                $typeDescription = [$typeDescription];
             }
-            return $this->types[$string];
+
+            $class = array_shift($typeDescription);
+
+            if (is_string($class)) {
+                $instance = new $class;
+            } else {
+                $instance = $class;
+            }
+
+            $class = array_shift($typeDescription);
+            if (!$class) {
+                return $instance;
+            }
+
+            if (is_string($class)) {
+                $instanceSub = new $class;
+            } else {
+                $instanceSub = $class;
+            }
+
+            $instance->setChildType($instanceSub);
+            return $instance;
         }
 
         if (class_exists($string)) {
