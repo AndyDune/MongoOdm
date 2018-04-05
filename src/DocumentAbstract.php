@@ -17,7 +17,11 @@
 
 
 namespace AndyDune\MongoOdm;
+use AndyDune\ArrayContainer\Action\KeysLeave;
+use AndyDune\ArrayContainer\ArrayContainer;
+use MongoDB\BSON\ObjectId;
 use MongoDB\Collection;
+use MongoDB\Model\BSONDocument;
 
 abstract class DocumentAbstract
 {
@@ -26,10 +30,14 @@ abstract class DocumentAbstract
      */
     protected $collection;
 
-    protected $id;
+    /**
+     * @var ObjectId|null
+     */
+    protected $id = null;
     protected $fieldsMap = [];
 
     protected $data = [];
+    protected $dataWasMentioned = [];
 
     final public function __construct(Collection $collection, $strong = false)
     {
@@ -41,10 +49,36 @@ abstract class DocumentAbstract
         });
     }
 
+    public function save()
+    {
+        $dataToSave = $this->getDataToSave(true);
+        if (!$dataToSave) {
+            return false;
+        }
+        if ($this->id) {
+            $this->collection->updateOne(['_id' => $this->id], ['$set' => $dataToSave]);
+        } else {
+            $result = $this->collection->insertOne($dataToSave);
+            $this->id = $result->getInsertedId();
+        }
+        $this->dataWasMentioned = [];
+        return true;
+    }
+
+    public function getDataToSave($onlyMentionedData = false)
+    {
+        if ($onlyMentionedData) {
+            $arrayContainer = new ArrayContainer($this->data);
+            $arrayContainer->setAction(new KeysLeave())->executeAction($this->dataWasMentioned);
+            return $arrayContainer->getArrayCopy();
+        }
+        return $this->data;
+    }
+
     /**
      * Overload this method to direct describe collection fields.
      */
-    public function describe()
+    protected function describe()
     {
 
     }
@@ -56,13 +90,31 @@ abstract class DocumentAbstract
 
     public function populate($data)
     {
+        if ($data instanceof BSONDocument) {
+            $data = $data->getArrayCopy();
+        }
         $this->id = $data['_id'];
         unset($data['_id']);
         $this->data = $data;
     }
 
+    public function retrieve($filter = [])
+    {
+        if (!$filter and !$this->id) {
+            return false;
+        }
+        $filter = $filter ? $filter : ['_id' => $this->id];
+        $result = $this->collection->findOne($filter);
+        if ($result) {
+            $this->populate($result);
+            return true;
+        }
+        return false;
+    }
+
     public function __set($name, $value)
     {
+        $this->dataWasMentioned[] = $name;
         if (array_key_exists($name, $this->fieldsMap)) {
             $value = $this->fieldsMap[$name]->convertToDatabaseValue($value, $this->get($name));
         }
