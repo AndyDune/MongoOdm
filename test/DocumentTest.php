@@ -31,11 +31,14 @@ class DocumentTest extends TestCase
             {
                 $this->fieldsMap['number'] = 'integer';
                 $this->fieldsMap['code'] = 'string';
+                $this->fieldsMap['birthday'] = 'datetime';
             }
         };
 
+        $time = time();
         $odmClass->number = '12';
         $odmClass->code = '125';
+        $odmClass->birthday = date('Y-m-d H:i:s', $time);
         $odmClass->save();
 
         $res = $collection->findOne(['number' => 12]);
@@ -50,6 +53,9 @@ class DocumentTest extends TestCase
 
 
         $odmClass->retrieve();
+
+        $this->assertEquals($odmClass->birthday->getTimestamp(), $time);
+
         $odmClass->number = 'dasdsad';
         $odmClass->save();
 
