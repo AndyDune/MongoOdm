@@ -15,6 +15,7 @@
 
 
 namespace AndyDune\MongoOdm\Type;
+use AndyDune\ConditionalExecution\ConditionHolder;
 use AndyDune\DateTime\DateTime;
 use AndyDune\MongoOdm\TypeAbstract;
 use MongoDB\BSON\UTCDateTime;
@@ -24,7 +25,7 @@ class DateTimeType extends TypeAbstract
     public function convertToPhpValue($value)
     {
         if ($value instanceof UTCDateTime) {
-            return $value->toDateTime();
+            return new DateTime($value->toDateTime());
         }
         // @todo add exception if unexpected BD type
         return $value;
@@ -36,10 +37,29 @@ class DateTimeType extends TypeAbstract
             return new UTCDateTime($value->getTimestamp() * 1000);
         }
 
-        if (is_string($value)) {
+        $conditionStringVariants = new ConditionHolder();
+        $conditionStringVariants->add(function ($value) {
+            $bool = preg_match('|^[+-]{1}|ui', $value);
+            return $bool;
+        });
+
+        $conditionStringVariants->executeIfTrue(function ($value) {
+            $dateTime = new DateTime();
+            $dateTime->add($value);
+            return new UTCDateTime($dateTime->getTimestamp() * 1000);
+        });
+        $conditionStringVariants->executeIfFalse(function ($value) {
             $value = strtotime($value);
-        }
-        return new UTCDateTime($value * 1000);
+            return new UTCDateTime($value * 1000);
+        });
+
+        $condition = new ConditionHolder();
+        $condition->add(is_string($value))->executeIfTrue($conditionStringVariants)
+        ->executeIfFalse(function ($value) {
+            return new UTCDateTime($value * 1000);
+        });
+
+        return $condition->doIt($value);
     }
 
 }

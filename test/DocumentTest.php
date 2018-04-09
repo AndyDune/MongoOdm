@@ -15,6 +15,8 @@
 
 
 namespace AndyDune\MongoOdmTest;
+
+use AndyDune\DateTime\DateTime;
 use AndyDune\MongoOdm\DocumentAbstract;
 use PHPUnit\Framework\TestCase;
 
@@ -22,11 +24,12 @@ class DocumentTest extends TestCase
 {
     public function testIntegerAndStringType()
     {
-        $mongo =  new \MongoDB\Client();
+        $mongo = new \MongoDB\Client();
         $collection = $mongo->selectDatabase('test')->selectCollection('test_odm');
         $collection->deleteMany([]);
 
-        $odmClass = new class($collection) extends DocumentAbstract {
+        $odmClass = new class($collection) extends DocumentAbstract
+        {
             protected function describe()
             {
                 $this->fieldsMap['number'] = 'integer';
@@ -63,5 +66,52 @@ class DocumentTest extends TestCase
         $this->assertTrue((bool)$res);
 
         $collection->deleteMany([]);
+    }
+
+    public function testDateTimeType()
+    {
+        $mongo = new \MongoDB\Client();
+        $collection = $mongo->selectDatabase('test')->selectCollection('test_odm');
+        $collection->deleteMany([]);
+
+        $odmClass = new class($collection) extends DocumentAbstract
+        {
+            protected function describe()
+            {
+                $this->fieldsMap['birthday'] = 'datetime';
+            }
+        };
+
+        $time = time();
+        $odmClass->birthday = date('Y-m-d H:i:s', $time);
+        $odmClass->save();
+        $odmClass->retrieve();
+        $this->assertEquals($odmClass->birthday->getTimestamp(), $time);
+
+
+        $time = $time + 23;
+        $odmClass->birthday = $time;
+        $odmClass->save();
+        $odmClass->retrieve();
+        $this->assertEquals($odmClass->birthday->getTimestamp(), $time);
+
+        $odmClass->birthday = new DateTime($time);
+        $odmClass->save();
+        $odmClass->retrieve();
+        $this->assertEquals($odmClass->birthday->getTimestamp(), $time);
+
+
+        $time = time();
+        $odmClass->birthday = '+ 1 hour';
+        $odmClass->save();
+        $odmClass->retrieve();
+        $this->assertEquals($odmClass->birthday->format('G'), date('G', $time + 3600));
+
+        $time = time();
+        $odmClass->birthday = '- 3 hour';
+        $odmClass->save();
+        $odmClass->retrieve();
+        $this->assertEquals($odmClass->birthday->format('G'), date('G', $time - 3 * 3600));
+
     }
 }

@@ -22,6 +22,7 @@
     "require": {
         "php": ">=7.1",
         "mongodb/mongodb": "^1.1",
+        "andydune/conditional-execution": "^1",
         "andydune/datetime": "^1",
         "andydune/array-container": "^1"
     },
