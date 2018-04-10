@@ -18,6 +18,8 @@ namespace AndyDune\MongoOdmTest;
 
 use AndyDune\DateTime\DateTime;
 use AndyDune\MongoOdm\DocumentAbstract;
+use AndyDune\MongoOdm\Type\ArrayType;
+use AndyDune\MongoOdm\Type\StringType;
 use PHPUnit\Framework\TestCase;
 
 class DocumentTest extends TestCase
@@ -112,6 +114,128 @@ class DocumentTest extends TestCase
         $odmClass->save();
         $odmClass->retrieve();
         $this->assertEquals($odmClass->birthday->format('G'), date('G', $time - 3 * 3600));
+
+    }
+
+    public function testArray()
+    {
+        $mongo = new \MongoDB\Client();
+        $collection = $mongo->selectDatabase('test')->selectCollection('test_odm');
+        $collection->deleteMany([]);
+
+        $odmClass = new class($collection) extends DocumentAbstract
+        {
+            protected function describe()
+            {
+                $this->fieldsMap['test_array'] = 'string_array';
+            }
+        };
+
+        $odmClass->test_array = 'line 1';
+        $odmClass->test_array = 12313123;
+        $odmClass->save();
+
+        $odmClass->retrieve();
+        $array = $odmClass->test_array;
+        $this->assertTrue(count($array) == 2);
+        $this->assertEquals('line 1', array_shift($array));
+        $this->assertEquals('12313123', array_shift($array));
+
+
+        $odmClass = new class($collection) extends DocumentAbstract
+        {
+            protected function describe()
+            {
+                $this->fieldsMap['test_array'] = 'integer_array';
+            }
+        };
+
+        $odmClass->test_array = 'line 1';
+        $odmClass->test_array = 12313123;
+        $odmClass->save();
+
+        $odmClass->retrieve();
+        $array = $odmClass->test_array;
+        $this->assertTrue(count($array) == 2);
+        $this->assertEquals(0, array_shift($array));
+        $this->assertEquals(12313123, array_shift($array));
+
+
+        $odmClass = new class($collection) extends DocumentAbstract
+        {
+            protected function describe()
+            {
+                $this->fieldsMap['test_array'] = new ArrayType(new StringType());
+                $this->fieldsMap['test_array']->setArrayMaxLength(2);
+
+            }
+        };
+
+        $odmClass->test_array = 'line 1';
+        $odmClass->test_array = 12313123;
+        $odmClass->test_array = 'line 2';
+        $odmClass->test_array = 'line 3';
+        $odmClass->save();
+
+        $odmClass->retrieve();
+        $array = $odmClass->test_array;
+        $this->assertTrue(count($array) == 2);
+        $this->assertEquals('line 2', array_shift($array));
+        $this->assertEquals('line 3', array_shift($array));
+
+
+        $odmClass = new class($collection) extends DocumentAbstract
+        {
+            protected function describe()
+            {
+                $this->fieldsMap['test_array'] = new ArrayType(new StringType());
+                $this->fieldsMap['test_array']->useArrayUnShift();
+            }
+        };
+
+        $odmClass->test_array = 'line 1';
+        $odmClass->test_array = 12313123;
+        $odmClass->save();
+
+        $odmClass->retrieve();
+        $array = $odmClass->test_array;
+        $this->assertTrue(count($array) == 2);
+        $this->assertEquals('12313123', array_shift($array));
+        $this->assertEquals('line 1', array_shift($array));
+
+
+        $odmClass = new class($collection) extends DocumentAbstract
+        {
+            protected function describe()
+            {
+                $this->fieldsMap['test_array'] = new ArrayType(new StringType());
+                $this->fieldsMap['test_array']->useArrayUnShift();
+                $this->fieldsMap['test_array']->setArrayMaxLength(2);
+            }
+        };
+
+        $odmClass->test_array = 'line 1';
+        $odmClass->test_array = 12313123;
+        $odmClass->test_array = 'line 2';
+        $odmClass->test_array = 'line 3';
+        $odmClass->save();
+
+        $odmClass->retrieve();
+        $array = $odmClass->test_array;
+        $this->assertTrue(count($array) == 2);
+        $this->assertEquals('line 3', array_shift($array));
+        $this->assertEquals('line 2', array_shift($array));
+
+        $odmClass->test_array = ['one'];
+        $odmClass->save();
+
+        $odmClass->retrieve();
+        $array = $odmClass->test_array;
+        $this->assertTrue(count($array) == 1);
+        $this->assertEquals('one', array_shift($array));
+
+
+        $collection->deleteMany([]);
 
     }
 }

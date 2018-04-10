@@ -16,12 +16,20 @@
 
 namespace AndyDune\MongoOdm\Type;
 use AndyDune\MongoOdm\TypeAbstract;
+use MongoDB\Model\BSONArray;
 
 
 class ArrayType extends TypeAbstract
 {
+    protected $push = true;
+
+    protected $arrayMaxLength = 1000;
+
     public function convertToPhpValue($value)
     {
+        if ($value instanceof BSONArray) {
+            $value = $value->getArrayCopy();
+        }
         return $value;
     }
 
@@ -39,8 +47,50 @@ class ArrayType extends TypeAbstract
             $value = $this->childType->convertToDatabaseValue($value);
         }
 
-        $existValue[] = $value;
+        if ($this->push) {
+            $existValue[] = $value;
+            if (count($existValue) > $this->arrayMaxLength) {
+                array_shift($existValue);
+            }
+        } else {
+            array_unshift($existValue, $value);
+            if (count($existValue) > $this->arrayMaxLength) {
+                array_pop($existValue);
+            }
+        }
         return $existValue;
+    }
+
+    /**
+     * @param integer $length
+     * @return ArrayType
+     */
+    public function setArrayMaxLength($length)
+    {
+        $this->arrayMaxLength = $length;
+        return $this;
+    }
+
+    /**
+     * Push value onto the end of array.
+     * It is used as default.
+     *
+     * @return ArrayType
+     */
+    public function useArrayPush()
+    {
+        $this->push = true;
+        return $this;
+    }
+
+    /**
+     * Prepend value to the beginning of an array
+     * @return ArrayType
+     */
+    public function useArrayUnShift()
+    {
+        $this->push = false;
+        return $this;
     }
 
 }
