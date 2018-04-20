@@ -16,9 +16,12 @@
 
 namespace AndyDune\MongoOdmTest;
 
+use AndyDune\ArrayContainer\Action\ArrayShift;
+use AndyDune\ArrayContainer\ArrayContainer;
 use AndyDune\DateTime\DateTime;
 use AndyDune\MongoOdm\DocumentAbstract;
 use AndyDune\MongoOdm\Type\ArrayType;
+use AndyDune\MongoOdm\Type\AssociativeArrayType;
 use AndyDune\MongoOdm\Type\StringType;
 use PHPUnit\Framework\TestCase;
 
@@ -234,6 +237,75 @@ class DocumentTest extends TestCase
         $this->assertTrue(count($array) == 1);
         $this->assertEquals('one', array_shift($array));
 
+
+        $collection->deleteMany([]);
+
+
+        $odmClass = new class($collection) extends DocumentAbstract
+        {
+            protected function describe()
+            {
+                $this->fieldsMap['test_array'] = new AssociativeArrayType(new StringType());
+                //$this->fieldsMap['test_array']->setArrayMaxLength(2);
+            }
+        };
+
+        $odmClass->test_array = ['line 1' => 1];
+        $odmClass->test_array = [12312312 =>  2];
+        $odmClass->test_array = ['line 2' =>  3];
+        $odmClass->test_array = ['line 3' =>  4];
+        $odmClass->save();
+
+        $odmClass->retrieve();
+        $array = $odmClass->test_array;
+
+        $this->assertTrue(count($array) == 4);
+
+        $container = new ArrayContainer($array);
+        $value = $container->setAction(new ArrayShift())->executeAction();
+        $this->assertEquals(['line 1' => 1], $value);
+
+        $value = $container->setAction(new ArrayShift())->executeAction();
+        $this->assertEquals([12312312 => 2], $value);
+
+
+        $value = $container->setAction(new ArrayShift())->executeAction();
+        $this->assertEquals(['line 2' => 3], $value);
+
+        $value = $container->setAction(new ArrayShift())->executeAction();
+        $this->assertEquals(['line 3' => 4], $value);
+
+        $collection->deleteMany([]);
+
+
+
+        $odmClass = new class($collection) extends DocumentAbstract
+        {
+            protected function describe()
+            {
+                $this->fieldsMap['test_array'] = new AssociativeArrayType(new StringType());
+                $this->fieldsMap['test_array']->setArrayMaxLength(2);
+            }
+        };
+
+        $odmClass->test_array = ['line 1' => 1];
+        $odmClass->test_array = ['line 2' =>  3];
+        $odmClass->test_array = ['line 3' =>  4];
+        $odmClass->test_array = [12312312 =>  2];
+        $odmClass->save();
+
+
+        $odmClass->retrieve();
+        $array = $odmClass->test_array;
+
+        $this->assertTrue(count($array) == 2);
+
+        $container = new ArrayContainer($array);
+        $value = $container->setAction(new ArrayShift())->executeAction();
+        $this->assertEquals(['line 3' => 4], $value);
+
+        $value = $container->setAction(new ArrayShift())->executeAction();
+        $this->assertEquals([12312312 => 2], $value);
 
         $collection->deleteMany([]);
 

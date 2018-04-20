@@ -14,6 +14,8 @@
  */
 
 namespace AndyDune\MongoOdm\Type;
+use AndyDune\ArrayContainer\ArrayContainer;
+use AndyDune\ArrayContainer\Action\ArrayShift;
 use AndyDune\MongoOdm\Exception;
 use AndyDune\MongoOdm\TypeAbstract;
 use MongoDB\Model\BSONArray;
@@ -61,7 +63,9 @@ class AssociativeArrayType extends TypeAbstract
         if (count($existValue) > $this->arrayMaxLength) {
             // sort right before delete
             //ksort($existValue, SORT_STRING); // @todo think about it
-            array_shift($existValue);
+            $container = new ArrayContainer($existValue);
+            $container->setAction(new ArrayShift())->executeAction();
+            $existValue = $container->getArrayCopy();
         }
 
         return $existValue;
