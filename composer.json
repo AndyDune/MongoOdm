@@ -23,7 +23,7 @@
         "php": ">=7.1",
         "mongodb/mongodb": "^1.1",
         "andydune/conditional-execution": "^1",
-        "andydune/datetime": "^1",
+        "andydune/datetime": "^2",
         "andydune/array-container": ">=1.6"
     },
     "require-dev": {
