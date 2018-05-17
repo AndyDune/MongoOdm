@@ -27,14 +27,17 @@ class DateTimeType extends TypeAbstract
         if ($value instanceof UTCDateTime) {
             return new DateTime($value->toDateTime());
         }
-        // @todo add exception if unexpected BD type
-        return $value;
+        return new DateTime((int)$value);
     }
 
     public function convertToDatabaseValue($value, $existValue = null)
     {
         if ($value instanceof DateTime) {
             return new UTCDateTime($value->getTimestamp() * 1000);
+        }
+
+        if ($value instanceof UTCDateTime) {
+            return $value;
         }
 
         $conditionStringVariants = new ConditionHolder();

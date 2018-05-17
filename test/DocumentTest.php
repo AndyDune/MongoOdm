@@ -23,6 +23,7 @@ use AndyDune\MongoOdm\DocumentAbstract;
 use AndyDune\MongoOdm\Type\ArrayType;
 use AndyDune\MongoOdm\Type\AssociativeArrayType;
 use AndyDune\MongoOdm\Type\StringType;
+use MongoDB\BSON\UTCDateTime;
 use PHPUnit\Framework\TestCase;
 
 class DocumentTest extends TestCase
@@ -117,6 +118,13 @@ class DocumentTest extends TestCase
         $odmClass->save();
         $odmClass->retrieve();
         $this->assertEquals($odmClass->birthday->format('G'), date('G', $time - 3 * 3600));
+
+
+        $time = time() + 13;
+        $odmClass->birthday = new UTCDateTime($time * 1000);
+        $odmClass->save();
+        $odmClass->retrieve();
+        $this->assertEquals($odmClass->birthday->format('G'), date('G', $time));
 
     }
 
