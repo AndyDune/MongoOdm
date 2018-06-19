@@ -7,3 +7,27 @@
 
 
 Object Document mapper for mongoDB with no proxies, special configuration.
+
+Installation
+------------
+
+Installation using composer:
+
+```
+composer require andydune/mongo-odm
+```
+Or if composer was not installed globally:
+```
+php composer.phar require andydune/mongo-odm
+```
+Or edit your `composer.json`:
+```
+"require" : {
+     "andydune/mongo-odm": "^1"
+}
+
+```
+And execute command:
+```
+php composer.phar update
+```
