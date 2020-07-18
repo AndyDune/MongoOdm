@@ -31,3 +31,31 @@ And execute command:
 ```
 php composer.phar update
 ```
+
+# Control types
+```php
+ $mongo = new \MongoDB\Client();
+        $collection = $mongo->selectDatabase('test')->selectCollection('test_odm');
+        $collection->deleteMany([]);
+
+        $odmClass = new class($collection) extends DocumentAbstract
+        {
+            protected function describe()
+            {
+                $this->fieldsMap['number'] = 'integer';
+                $this->fieldsMap['code'] = 'string';
+                $this->fieldsMap['birthday'] = 'datetime';
+            }
+        };
+
+        $time = time();
+        $odmClass->number = '12';
+        $odmClass->code = '125';
+        $odmClass->birthday = date('Y-m-d H:i:s', $time);
+        $odmClass->save();
+
+        $res = $collection->findOne(['number' => 12]);
+        $this->assertTrue((bool)$res);
+        $res = $collection->findOne(['number' => '12']);
+        $this->assertFalse((bool)$res);
+```
